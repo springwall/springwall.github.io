@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人主页 | 引力场</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+SC:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d1117; 
+            --primary-color: #00f3ff; 
+            --section-bg: rgba(20, 25, 30, 0.8); /* 内容区背景，略带透明 */
+            --text-color: #ffffff;
+            --secondary-text: #999;
+            --card-border: rgba(0, 243, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth; /* 平滑滚动 */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans SC', sans-serif;
+            /* 移除 height: 100vh 和 overflow: hidden，允许滚动 */
+        }
+        
+        /* 标题和主要文字样式 */
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+        
+        /* 通用内容区块 */
+        section {
+            padding: 100px 50px;
+            min-height: 80vh; /* 确保内容有足够的空间 */
+            position: relative;
+            background: var(--section-bg);
+            margin-top: 2px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* 画布样式：必须固定 */
+        #gravity-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; 
+            background: var(--bg-color);
+        }
+
+        /* 导航栏 */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            position: sticky; /* 导航栏固定在顶部 */
+            top: 0;
+            z-index: 100;
+            background: rgba(13, 17, 23, 0.9);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+
+        /* 主英雄区域（第一屏） */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-content {
+            background: rgba(0, 0, 0, 0.6); 
+            padding: 40px 60px;
+            border-radius: 10px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); 
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            max-width: 90%;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+            color: var(--text-color);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #ddd;
+            margin-bottom: 40px;
+            min-height: 1.5em;
+            letter-spacing: 2px;
+        }
+
+        .btn {
+            padding: 15px 45px;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: 0.4s;
+            cursor: pointer;
+            display: inline-block;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background: var(--primary-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 40px var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        /* --- CONTENT SPECIFIC STYLES --- */
+
+        /* About Me */
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            text-align: left;
+            color: var(--secondary-text);
+        }
+        .about-content strong {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* Skills */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .skill-item {
+            background: rgba(0, 243, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            transition: 0.3s;
+        }
+        .skill-item:hover {
+            background: rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 15px var(--primary-color);
+            transform: translateY(-5px);
+        }
+        .skill-item h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            margin-top: 10px;
+        }
+
+        /* Projects */
+        .project-card {
+            background: var(--section-bg);
+            border: 1px solid var(--card-border);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+            transition: 0.3s;
+        }
+        .project-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        .project-card p {
+            color: var(--secondary-text);
+            margin-bottom: 15px;
+        }
+        .project-card a {
+            color: #fff;
+            background: var(--primary-color);
+            padding: 5px 15px;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+
+        /* Contact */
+        .contact-info {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .contact-info p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        .contact-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 1.5rem;
+            transition: 0.3s;
+        }
+        .contact-links a:hover {
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            nav { padding: 20px; }
+            .nav-links { display: none; }
+            section { padding: 80px 20px; }
+            h2 { font-size: 2rem; }
+            .about-content { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gravity-canvas"></canvas>
+
+    <nav>
+        <div class="logo">GRAVITY_PORT</div>
+        <div class="nav-links">
+            <a href="#about">关于我</a>
+            <a href="#skills">技能栈</a>
+            <a href="#projects">作品集</a>
+            <a href="#contact">联系</a>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <div class="hero-content hero">
+            <h1>INITIATE <span style="color:var(--primary-color)">GRAVITY</span></h1>
+            <p id="typing-text"></p>
+            <a href="#projects" class="btn">VIEW PROJECTS</a>
+        </div>
+    </div>
+    
+    <section id="about">
+        <h2>// WHO AM I</h2>
+        <div class="about-content">
+            <p>你好！我是 **[您的名字]**，一名专注于 **[您的专业领域，如前端开发/UI设计/数据分析]** 的创造者。</p>
+            <br>
+            <p>我热衷于将复杂的数据和抽象的概念转化为直观、高效的数字体验。我坚信，技术不仅仅是工具，更是连接世界、解决问题的桥梁。我的工作重心是利用 **[您最擅长的技术栈，如React和Node.js]** 构建高性能、用户友好的应用。</p>
+            <br>
+            <p>在我的引力场中，每一个项目都承载着我对创新和完美的追求。期待与你交流！</p>
+        </div>
+    </section>
+
+    <section id="skills">
+        <h2>// TECH STACK</h2>
+        <div class="skills-grid">
+            <div class="skill-item"><h4>JavaScript (ES6+)</h4><p>核心开发语言</p></div>
+            <div class="skill-item"><h4>React / Vue</h4><p>前端框架经验</p></div>
+            <div class="skill-item"><h4>Node.js / Python</h4><p>后端和脚本能力</p></div>
+            <div class="skill-item"><h4>Figma / PS</h4><p>UI/UX 设计</p></div>
+            <div class="skill-item"><h4>Git / AWS</h4><p>版本控制与部署</p></div>
+            <div class="skill-item"><h4>SQL / MongoDB</h4><p>数据库管理</p></div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <h2>// PROJECTS LOG</h2>
+        <div class="about-content">
+            <div class="project-card">
+                <h3>项目 Alpha：数据可视化平台</h3>
+                <p>利用 React 和 D3.js 搭建的实时数据监控仪表板，提升了 30% 的分析效率。</p>
+                <a href="#">查看详情</a>
+            </div>
+            <div class="project-card">
+                <h3>项目 Beta：AI 驱动的聊天机器人</h3>
+                <p>基于 Python 和 Transformer 模型开发的智能客服系统，支持多轮对话和意图识别。</p>
+                <a href="#">查看详情</a>
+            </div>
+            <div class="project-card">
+                <h3>项目 Gamma：个人炫酷主页</h3>
+                <p>您正在浏览的这个网站，纯 Canvas 驱动的物理粒子模拟背景。</p>
+                <a href="#">Github 源码</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2>// COMM LINK</h2>
+        <div class="contact-info">
+            <p>欢迎通过以下任一方式与我取得联系，开始下一个令人兴奋的合作项目。</p>
+            <p>邮箱: <span style="color: var(--primary-color);">your.email@example.com</span></p>
+            <div class="contact-links">
+                <a href="#" title="LinkedIn">LinkedIn</a>
+                <a href="#" title="GitHub">GitHub</a>
+                <a href="#" title="Twitter">X/Twitter</a>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // --- 核心 JS 逻辑 (引力场和打字机) ---
+        const canvas = document.getElementById('gravity-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const numParticles = 200; 
+        const particles = [];
+
+        let mouse = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            attractionRadius: 200,
+            attractionStrength: 0.1
+        };
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.clientX;
+            mouse.y = event.clientY;
+        });
+
+        window.addEventListener('click', function(e) {
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+            const explosionForce = 8; 
+            const explosionRadius = 100;
+
+            particles.forEach(p => {
+                const dx = p.x - clickX;
+                const dy = p.y - clickY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < explosionRadius) {
+                    const ratio = explosionForce / (distance || 1);
+                    p.vx += dx * ratio * 0.1; 
+                    p.vy += dy * ratio * 0.1;
+                }
+            });
+        });
+
+        class Particle {
+            constructor(x, y, radius, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = radius;
+                this.color = color;
+                this.mass = radius * 0.1; 
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < mouse.attractionRadius) {
+                    const force = mouse.attractionStrength * this.mass / distance;
+                    const ax = dx / distance * force;
+                    const ay = dy / distance * force;
+
+                    this.vx += ax;
+                    this.vy += ay;
+                }
+                
+                const wind = 0.01; 
+                this.vx += (Math.random() - 0.5) * wind;
+                this.vy += (Math.random() - 0.5) * wind;
+
+                this.vx *= 0.99; 
+                this.vy *= 0.99;
+
+                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                    this.vx = -this.vx;
+                }
+                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                    this.vy = -this.vy;
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                this.draw();
+            }
+        }
+
+        function init() {
+            particles.length = 0; 
+            for (let i = 0; i < numParticles; i++) {
+                let radius = Math.random() * 2 + 1;
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                let color = `rgba(0, 243, 255, ${Math.random()})`; 
+                particles.push(new Particle(x, y, radius, color));
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(13, 17, 23, 0.4)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        });
+
+        window.addEventListener('mouseout', function(){
+            mouse.x = canvas.width / 2;
+            mouse.y = canvas.height / 2;
+        })
+
+        init();
+        animate();
+
+        // --- 打字机效果 ---
+        const textElement = document.getElementById('typing-text');
+        const texts = ["MASS X ENERGY", "PHYSICS SIMULATION", "YOUR GRAVITY WELL"];
+        let count = 0;
+        let index = 0;
+        let currentText = '';
+        let letter = '';
+        
+        (function type() {
+            if (count === texts.length) count = 0;
+            currentText = texts[count];
+            letter = currentText.slice(0, ++index);
+            textElement.innerHTML = letter + '<span style="color:var(--primary-color);text-shadow: 0 0 5px var(--primary-color)">█</span>';
+            
+            if (letter.length === currentText.length) {
+                count++;
+                index = 0;
+                setTimeout(type, 3000);
+            } else {
+                setTimeout(type, 100);
+            }
+        }());
+    </script>
+</body>
+</html>
